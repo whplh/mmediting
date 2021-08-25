@@ -1,5 +1,6 @@
 from .basicvsr_net import BasicVSRNet
 from .dic_net import DICNet
+from .dfd_net import DFDNet
 from .edsr import EDSR
 from .edvr_net import EDVRNet
 from .glean_styleganv2 import GLEANStyleGANv2
@@ -16,5 +17,5 @@ from .ttsr_net import TTSRNet
 __all__ = [
     'MSRResNet', 'RRDBNet', 'EDSR', 'EDVRNet', 'TOFlow', 'SRCNN', 'DICNet',
     'BasicVSRNet', 'IconVSR', 'RDN', 'TTSRNet', 'GLEANStyleGANv2', 'TDANNet',
-    'LIIFEDSR', 'LIIFRDN'
+    'LIIFEDSR', 'LIIFRDN', 'DFDNet'
 ]

@@ -1,7 +1,13 @@
+import numpy as np
+import pytest
 import torch
+from mmcv.utils.testing import assert_dict_has_keys
 
-from mmedit.datasets.pipelines import (GenerateCoordinateAndCell,
+from mmedit.datasets.pipelines import (DetectFaceLandmark,
+                                       FacialFeaturesLocation,
+                                       GenerateCoordinateAndCell,
                                        GenerateHeatmap)
+from mmedit.datasets import SRFolderGTDataset
 
 
 def test_generate_heatmap():
@@ -48,3 +54,47 @@ def test_generate_coordinate_and_cell():
         sample_quantity=64 * 48, scale=3.1, target_size=(128, 96))
     results3 = coordinate3(inputs3)
     assert set(list(results3.keys())) == set(['coord', 'cell'])
+
+
+def test_face_landmark():
+    test_pipeline = [
+        dict(
+            type='LoadImageFromFile',
+            io_backend='disk',
+            key='gt',
+            flag='color',
+            channel_order='rgb',
+            backend='pillow'),
+        dict(
+            type='DetectFaceLandmark',
+            image_key='gt',
+            landmark_key='landmark',
+            device='cuda'),
+        dict(
+            type='FacialFeaturesLocation',
+            landmark_key='landmark',
+            location_key='location'),
+        dict(
+            type='Normalize',
+            keys=['gt'],
+            mean=[127.5, 127.5, 127.5],
+            std=[127.5, 127.5, 127.5])
+    ]
+    sr_folder_gt_dataset = SRFolderGTDataset(
+        gt_folder='tests/data/dfd', scale=4, pipeline=test_pipeline)
+    
+    results = sr_folder_gt_dataset.prepare_test_data(0)
+    target_keys = ['gt_path', 'gt', 'gt_ori_shape', 'landmark', 'location']
+    assert assert_dict_has_keys(results, target_keys)
+    assert results['landmark'].shape == (68, 2)
+    assert isinstance(results['location'], dict)
+    facials = ['left_eye', 'right_eye', 'nose', 'mouth']
+    assert assert_dict_has_keys(results['location'], facials)
+
+    with pytest.raises(AssertionError):
+        results['landmark'] = np.random.rand(65, 2)
+        facial_location = FacialFeaturesLocation('landmark', 'location')
+        facial_location(results)
+
+if __name__ == '__main__':
+    test_face_landmark()
