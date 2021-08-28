@@ -30,6 +30,7 @@ def restoration_inference(model, img):
             if 'meta_keys' in pipeline and key in pipeline['meta_keys']:
                 pipeline['meta_keys'].remove(key)
     # build the data pipeline
+    print(cfg.test_pipeline)
     test_pipeline = Compose(cfg.test_pipeline)
     # prepare data
     data = dict(lq_path=img)
